@@ -8,5 +8,11 @@ package mapnik
 // #cgo CXXFLAGS: $(mapnik-config --cflags)
 // #cgo LDFLAGS: $(mapnik-config --libs)
 import "C"
+
+const (
+	fontPath = "$(mapnik-config --fonts)"
+	pluginPath = "$(mapnik-config --input-plugins)"
+)
+
 EOF
 
