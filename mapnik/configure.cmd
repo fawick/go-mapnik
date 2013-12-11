@@ -37,7 +37,7 @@ echo.PLUGINS=%MAPNIK_INPUT_PLUGINS_DIRECTORY%
 > gen_import_windows.go (
     echo.package mapnik
 	echo.
-    echo.// #cgo LDFLAGS: mapnik_c_api.dll
+    echo.// #cgo LDFLAGS: c:/mapnik-v2.2.0/lib/mapnik_c_api.dll
 	echo.import"C"
 	echo.
 	echo.const (
@@ -51,6 +51,7 @@ if not exist mapnik_c_api.obj cl -c -nologo -Zm200 -Zc:wchar_t- -O2 %MAPNIK_CXXF
 link /LIBPATH:%MAPNIK_LDFLAGS% %MAPNIK_LIBS%  mapnik_c_api.obj /DLL /OUT:mapnik_c_api.dll 
 
 del mapnik_c_api.obj  mapnik_c_api.cpp  mapnik_c_api.lib  mapnik_c_api.exp
+move /y mapnik_c_api.dll c:\mapnik-v2.2.0\lib
 
 goto :eof
 
