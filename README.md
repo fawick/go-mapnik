@@ -10,7 +10,7 @@ from http://github.com/springmeyer/mapnik-c-api. (Pull request pending)
 Installation
 -----------
 
-### Linux / MacOS ===
+### Linux / MacOS
 
 1. Install Mapnik build environmnent,
 	- e.g. Ubuntu: `apt-get install libmapnik-dev`
