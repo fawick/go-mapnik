@@ -99,3 +99,7 @@ func (m *Map) Projection() Projection {
 	p.p = C.mapnik_map_projection(m.m)
 	return p
 }
+
+func (m *Map) SetBufferSize(s int) {
+	C.mapnik_map_set_buffer_size(m.m, C.int(s))
+}
