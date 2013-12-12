@@ -93,3 +93,9 @@ func (m *Map) RenderToMemoryPng() []byte {
 	defer C.mapnik_image_blob_free(b)
 	return C.GoBytes(unsafe.Pointer(b.ptr), C.int(b.len))
 }
+
+func (m *Map) Projection() Projection {
+	p := Projection{}
+	p.p = C.mapnik_map_projection(m.m)
+	return p
+}
