@@ -1,26 +1,60 @@
 package mapnik
 
 import (
+	"fmt"
 	"log"
-	"sync"
 )
 
-type tileCoord struct {
-	x, y, zoom uint64
-	tms        bool
+type TileCoord struct {
+	X, Y, Zoom uint64
+	Tms        bool
 }
 
-func (c *tileCoord) setTMS(tms bool) {
-	if c.tms != tms {
-		c.y = (1 << c.zoom) - c.y - 1
-		c.tms = tms
+func (c TileCoord) OSMFilename() string {
+	return fmt.Sprintf("%d/%d/%d.png", c.Zoom, c.X, c.Y)
+}
+
+type TileRenderResult struct {
+	Coord   TileCoord
+	BlobPNG []byte
+}
+
+type TileRenderRequest struct {
+	Coord   TileCoord
+	OutChan chan<- TileRenderResult
+}
+
+func (c *TileCoord) setTMS(tms bool) {
+	if c.Tms != tms {
+		c.Y = (1 << c.Zoom) - c.Y - 1
+		c.Tms = tms
 	}
 }
 
+func SetupRenderRoutine(stylesheet string) chan<- TileRenderRequest {
+	c := make(chan TileRenderRequest)
+
+	go func(requestChan <-chan TileRenderRequest) {
+		var err error
+		t := NewTileRenderer(stylesheet)
+		for request := range requestChan {
+			result := TileRenderResult{request.Coord, nil}
+			result.BlobPNG, err = t.RenderTile(request.Coord)
+			if err != nil {
+				log.Println("Error while rendering", request.Coord, ":", err.Error())
+				result.BlobPNG = nil
+			}
+			request.OutChan <- result
+		}
+	}(c)
+
+	return c
+}
+
+// Renders images as Web Mercator tiles
 type TileRenderer struct {
 	m  *Map
 	mp Projection
-	mu *sync.Mutex
 }
 
 func NewTileRenderer(stylesheet string) *TileRenderer {
@@ -32,14 +66,13 @@ func NewTileRenderer(stylesheet string) *TileRenderer {
 	t.m = NewMap(256, 256)
 	t.m.Load(stylesheet)
 	t.mp = t.m.Projection()
-	t.mu = new(sync.Mutex)
 
 	return t
 }
 
-func (t *TileRenderer) RenderTile(c tileCoord) ([]byte, error) {
+func (t *TileRenderer) RenderTile(c TileCoord) ([]byte, error) {
 	c.setTMS(false)
-	return t.RenderTileZXY(c.zoom, c.x, c.y)
+	return t.RenderTileZXY(c.Zoom, c.X, c.Y)
 }
 
 // Render a tile with coordinates in Google tile format.

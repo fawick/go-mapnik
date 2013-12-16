@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 )
 
 type GeneratorJob struct {
@@ -29,22 +28,21 @@ func ensureDirExists(path string) {
 // Generates tile files as a <zoom>/<x>/<y>.png file hierarchie in the current
 // work directory.
 func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) {
-	c := make(chan tileCoord)
+	c := make(chan TileCoord)
 	q := make(chan bool)
 
-	fmt.Println("starting job", name)
+	log.Println("starting job", name)
 
 	ensureDirExists(g.TileDir)
 
 	for i := 0; i < g.Threads; i++ {
-		go func(id int, ctc <-chan tileCoord, q chan bool) {
-			r := NewTileRenderer(g.MapFile)
+		go func(id int, ctc <-chan TileCoord, q chan bool) {
+			requests := SetupRenderRoutine(g.MapFile)
+			results := make(chan TileRenderResult)
 			for t := range ctc {
-				start := time.Now()
-				r.RenderTile(t)
-				bytes, _ := r.RenderTile(t)
-				ioutil.WriteFile(fmt.Sprintf("%d/%d/%d.png", t.zoom, t.x, t.y), bytes, 0644)
-				log.Println(id, t.x, t.y, t.zoom, time.Since(start))
+				requests <- TileRenderRequest{t, results}
+				r := <-results
+				ioutil.WriteFile(r.Coord.OSMFilename(), r.BlobPNG, 0644)
 			}
 			q <- true
 		}(i, c, q)
@@ -60,9 +58,8 @@ func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) 
 		ensureDirExists(fmt.Sprintf("%d", z))
 		for x := uint64(px0[0] / 256.0); x <= uint64(px1[0]/256.0); x++ {
 			ensureDirExists(fmt.Sprintf("%d/%d", z, x))
-			fmt.Println(uint64(px0[1]/256.0), uint64(px1[1]/256.0))
 			for y := uint64(px0[1] / 256.0); y <= uint64(px1[1]/256.0); y++ {
-				c <- tileCoord{x, y, z, false}
+				c <- TileCoord{x, y, z, false}
 			}
 		}
 	}
