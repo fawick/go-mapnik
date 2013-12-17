@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fawick/go-mapnik/mapnik"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
 
@@ -43,7 +44,13 @@ func GenerateOSMTiles() {
 	g.Run(mapnik.Coord{1.0, 10.0}, mapnik.Coord{20.6, 50.0}, 1, 11, "Europe+")
 }
 
+func TileserverWithCaching() {
+	t := mapnik.NewTileServer("sampledata/stylesheet.xml")
+	http.ListenAndServe(":8080", t)
+}
+
 func main() {
 	//SimpleExample()
-	GenerateOSMTiles()
+	//GenerateOSMTiles()
+	TileserverWithCaching()
 }

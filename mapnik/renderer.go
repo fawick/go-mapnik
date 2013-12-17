@@ -14,14 +14,14 @@ func (c TileCoord) OSMFilename() string {
 	return fmt.Sprintf("%d/%d/%d.png", c.Zoom, c.X, c.Y)
 }
 
-type TileRenderResult struct {
+type TileFetchResult struct {
 	Coord   TileCoord
 	BlobPNG []byte
 }
 
-type TileRenderRequest struct {
+type TileFetchRequest struct {
 	Coord   TileCoord
-	OutChan chan<- TileRenderResult
+	OutChan chan<- TileFetchResult
 }
 
 func (c *TileCoord) setTMS(tms bool) {
@@ -31,14 +31,14 @@ func (c *TileCoord) setTMS(tms bool) {
 	}
 }
 
-func SetupRenderRoutine(stylesheet string) chan<- TileRenderRequest {
-	c := make(chan TileRenderRequest)
+func SetupRenderRoutine(stylesheet string) chan<- TileFetchRequest {
+	c := make(chan TileFetchRequest)
 
-	go func(requestChan <-chan TileRenderRequest) {
+	go func(requestChan <-chan TileFetchRequest) {
 		var err error
 		t := NewTileRenderer(stylesheet)
 		for request := range requestChan {
-			result := TileRenderResult{request.Coord, nil}
+			result := TileFetchResult{request.Coord, nil}
 			result.BlobPNG, err = t.RenderTile(request.Coord)
 			if err != nil {
 				log.Println("Error while rendering", request.Coord, ":", err.Error())

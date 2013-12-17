@@ -20,7 +20,7 @@ var gp struct {
 
 func init() {
 	c := 256.0
-	for d := 0; d < 20; d++ {
+	for d := 0; d < 30; d++ {
 		e := c / 2
 		gp.Bc = append(gp.Bc, c/360.0)
 		gp.Cc = append(gp.Cc, c/(2*math.Pi))

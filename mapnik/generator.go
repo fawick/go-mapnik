@@ -25,7 +25,7 @@ func ensureDirExists(path string) {
 	}
 }
 
-// Generates tile files as a <zoom>/<x>/<y>.png file hierarchie in the current
+// Generates tile files as a <zoom>/<x>/<y>.png file hierarchy in the current
 // work directory.
 func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) {
 	c := make(chan TileCoord)
@@ -38,9 +38,9 @@ func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) 
 	for i := 0; i < g.Threads; i++ {
 		go func(id int, ctc <-chan TileCoord, q chan bool) {
 			requests := SetupRenderRoutine(g.MapFile)
-			results := make(chan TileRenderResult)
+			results := make(chan TileFetchResult)
 			for t := range ctc {
-				requests <- TileRenderRequest{t, results}
+				requests <- TileFetchRequest{t, results}
 				r := <-results
 				ioutil.WriteFile(r.Coord.OSMFilename(), r.BlobPNG, 0644)
 			}
