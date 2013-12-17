@@ -4,8 +4,7 @@ go-mapnik
 Go bindings for mapnik (http://www.mapnik.org or
 http://github.com/mapnik/mapnik)
 
-These bindings rely on http://github.com/fawick/mapnik-c-api, which was forked
-from http://github.com/springmeyer/mapnik-c-api. (Pull request pending)
+These bindings rely on http://github.com/springmeyer/mapnik-c-api. 
 
 Installation
 -----------
