@@ -1,0 +1,26 @@
+<html>
+<head>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
+
+<!--[if lte IE 8]>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.0/leaflet.ie.css" />
+<![endif]-->
+ 
+<script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
+</head>
+<body id="map" style="height:100%;width:100%;">
+
+</body>
+<script type="text/javascript">
+
+var map = L.map('map', {
+    layers: [
+		L.tileLayer('http://localhost:8080?z={z}&x={x}&y={y}', {
+			maxZoom: 20,
+			minZoom: 4,
+		}),
+	]
+}).setView([0, 0], 4);
+
+</script>
+</html>
