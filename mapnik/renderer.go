@@ -8,6 +8,7 @@ import (
 type TileCoord struct {
 	X, Y, Zoom uint64
 	Tms        bool
+	Layer      string
 }
 
 func (c TileCoord) OSMFilename() string {
@@ -31,7 +32,7 @@ func (c *TileCoord) setTMS(tms bool) {
 	}
 }
 
-func SetupRenderRoutine(stylesheet string) chan<- TileFetchRequest {
+func NewTileRendererChan(stylesheet string) chan<- TileFetchRequest {
 	c := make(chan TileFetchRequest)
 
 	go func(requestChan <-chan TileFetchRequest) {
@@ -77,8 +78,9 @@ func (t *TileRenderer) RenderTile(c TileCoord) ([]byte, error) {
 
 // Render a tile with coordinates in Google tile format.
 // Most upper left tile is always 0,0. Method is not thread-safe,
-// so wrap in a channel communication or with a mutex when accessing
-// the same renderer by multiple threads.
+// so wrap with a mutex when accessing the same renderer by multiple
+// threads or setup multiple goroutinesand communicate with channels,
+// see NewTileRendererChan.
 func (t *TileRenderer) RenderTileZXY(zoom, x, y uint64) ([]byte, error) {
 	// Calculate pixel positions of bottom left & top right
 	p0 := [2]float64{float64(x) * 256, (float64(y) + 1) * 256}

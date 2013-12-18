@@ -10,14 +10,18 @@ import (
 	//"strconv"
 )
 
-type Mbtiles struct {
+// MBTiles 1.2-compatible Tile Db with multi-layer support.
+// Was named Mbtiles before, hence the use of *m in methods.
+type TileDb struct {
 	db          *sql.DB
 	requestChan chan TileFetchRequest
 	insertChan  chan TileFetchResult
+	layerIds    map[string]int
+	qc          chan bool
 }
 
-func NewMbtiles(path string) *Mbtiles {
-	m := Mbtiles{}
+func NewTileDb(path string) *TileDb {
+	m := TileDb{}
 	var err error
 	m.db, err = sql.Open("sqlite3", path)
 	if err != nil {
@@ -26,18 +30,18 @@ func NewMbtiles(path string) *Mbtiles {
 	}
 	queries := []string{
 		"PRAGMA journal_mode = OFF",
-		"CREATE TABLE IF NOT EXISTS layers(layer_name text PRIMARY KEY NOT NULL);",
-		"CREATE TABLE IF NOT EXISTS metadata (name text PRIMARY KEY NOT NULL, value text NOT NULL);",
-		"CREATE TABLE IF NOT EXISTS layered_tiles (layer_id integer, zoom_level integer, tile_column integer, tile_row integer, checksum text, PRIMARY KEY (layer_id, zoom_level, tile_column, tile_row) FOREIGN KEY(checksum) REFERENCES tile_blobs(checksum));",
-		"CREATE TABLE IF NOT EXISTS tile_blobs (checksum text, tile_data blob);",
-		"CREATE VIEW IF NOT EXISTS tiles AS SELECT layered_tiles.zoom_level as zoom_level, layered_tiles.tile_column as tile_column, layered_tiles.tile_row as tile_row, (SELECT tile_data FROM tile_blobs WHERE checksum=layered_tiles.checksum) as tile_data FROM layered_tiles WHERE layered_tiles.layer_id = (SELECT rowid FROM layers WHERE layer_name='default');",
-		"REPLACE INTO metadata VALUES('name', 'go-mapnik cache file');",
-		"REPLACE INTO metadata VALUES('type', 'overlay');",
-		"REPLACE INTO metadata VALUES('version', '0');",
-		"REPLACE INTO metadata VALUES('description', 'Compatible with MBTiles spec 1.2. However, this file may contain multiple overlay layers, but only the layer called default is exported as MBtiles');",
-		"REPLACE INTO metadata VALUES('format', 'png');",
-		"REPLACE INTO metadata VALUES('bounds', '-180.0,-85,180,85');",
-		"INSERT OR IGNORE INTO layers(layer_name) VALUES('default');",
+		"CREATE TABLE IF NOT EXISTS layers(layer_name text PRIMARY KEY NOT NULL)",
+		"CREATE TABLE IF NOT EXISTS metadata (name text PRIMARY KEY NOT NULL, value text NOT NULL)",
+		"CREATE TABLE IF NOT EXISTS layered_tiles (layer_id integer, zoom_level integer, tile_column integer, tile_row integer, checksum text, PRIMARY KEY (layer_id, zoom_level, tile_column, tile_row) FOREIGN KEY(checksum) REFERENCES tile_blobs(checksum))",
+		"CREATE TABLE IF NOT EXISTS tile_blobs (checksum text, tile_data blob)",
+		"CREATE VIEW IF NOT EXISTS tiles AS SELECT layered_tiles.zoom_level as zoom_level, layered_tiles.tile_column as tile_column, layered_tiles.tile_row as tile_row, (SELECT tile_data FROM tile_blobs WHERE checksum=layered_tiles.checksum) as tile_data FROM layered_tiles WHERE layered_tiles.layer_id = (SELECT rowid FROM layers WHERE layer_name='default')",
+		"REPLACE INTO metadata VALUES('name', 'go-mapnik cache file')",
+		"REPLACE INTO metadata VALUES('type', 'overlay')",
+		"REPLACE INTO metadata VALUES('version', '0')",
+		"REPLACE INTO metadata VALUES('description', 'Compatible with MBTiles spec 1.2. However, this file may contain multiple overlay layers, but only the layer called default is exported as MBtiles')",
+		"REPLACE INTO metadata VALUES('format', 'png')",
+		"REPLACE INTO metadata VALUES('bounds', '-180.0,-85,180,85')",
+		"INSERT OR IGNORE INTO layers(layer_name) VALUES('default')",
 	}
 
 	for _, query := range queries {
@@ -47,27 +51,66 @@ func NewMbtiles(path string) *Mbtiles {
 			return nil
 		}
 	}
+
+	m.readLayers()
+
 	m.insertChan = make(chan TileFetchResult)
 	m.requestChan = make(chan TileFetchRequest)
 	go m.Run()
 	return &m
 }
 
-func (m *Mbtiles) Close() {
-	close(m.insertChan)
-	close(m.requestChan)
+func (m *TileDb) readLayers() {
+	m.layerIds = make(map[string]int)
+	rows, err := m.db.Query("SELECT rowid, layer_name FROM layers")
+	if err != nil {
+		log.Fatal("Error fetching layer definitions", err.Error())
+	}
+	var s string
+	var i int
+	for rows.Next() {
+		if err := rows.Scan(&i, &s); err != nil {
+			log.Fatal(err)
+		}
+		m.layerIds[s] = i
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func (m Mbtiles) InsertQueue() chan<- TileFetchResult {
+func (m *TileDb) ensureLayer(layer string) {
+	if _, ok := m.layerIds[layer]; !ok {
+		if _, err := m.db.Exec("INSERT OR IGNORE INTO layers(layer_name) VALUES(?)", layer); err != nil {
+			log.Println(err)
+		}
+		m.readLayers()
+	}
+}
+
+func (m *TileDb) Close() {
+	close(m.insertChan)
+	close(m.requestChan)
+	if m.qc != nil {
+		<-m.qc // block until channel qc is closed (meaning Run() is finished)
+	}
+	if err := m.db.Close(); err != nil {
+		log.Print(err)
+	}
+
+}
+
+func (m TileDb) InsertQueue() chan<- TileFetchResult {
 	return m.insertChan
 }
 
-func (m Mbtiles) RequestQueue() chan<- TileFetchRequest {
+func (m TileDb) RequestQueue() chan<- TileFetchRequest {
 	return m.requestChan
 }
 
 // Best executed in a dedicated go routine.
-func (m *Mbtiles) Run() {
+func (m *TileDb) Run() {
+	m.qc = make(chan bool)
 	for {
 		select {
 		case r := <-m.requestChan:
@@ -76,11 +119,15 @@ func (m *Mbtiles) Run() {
 			m.insert(i)
 		}
 	}
+	m.qc <- true
 }
 
-func (m *Mbtiles) insert(i TileFetchResult) {
+func (m *TileDb) insert(i TileFetchResult) {
 	i.Coord.setTMS(true)
-	x, y, z := i.Coord.X, i.Coord.Y, i.Coord.Zoom
+	x, y, z, l := i.Coord.X, i.Coord.Y, i.Coord.Zoom, i.Coord.Layer
+	if l == "" {
+		l = "default"
+	}
 	h := md5.New()
 	_, err := h.Write(i.BlobPNG)
 	if err != nil {
@@ -103,20 +150,33 @@ func (m *Mbtiles) insert(i TileFetchResult) {
 	default:
 		//log.Println("Reusing blob", s)
 	}
-	sql := "REPLACE INTO layered_tiles VALUES( (SELECT rowid FROM layers WHERE layer_name='default'), ?, ?, ?, ?)"
-	if _, err = m.db.Exec(sql, z, x, y, s); err != nil {
+	m.ensureLayer(l)
+	sql := "REPLACE INTO layered_tiles VALUES(?, ?, ?, ?, ?)"
+	if _, err = m.db.Exec(sql, m.layerIds[l], z, x, y, s); err != nil {
 		log.Println(err)
 	}
 }
 
-func (m *Mbtiles) fetch(r TileFetchRequest) {
+func (m *TileDb) fetch(r TileFetchRequest) {
 	r.Coord.setTMS(true)
-	zoom, x, y := r.Coord.Zoom, r.Coord.X, r.Coord.Y
+	zoom, x, y, l := r.Coord.Zoom, r.Coord.X, r.Coord.Y, r.Coord.Layer
+	if l == "" {
+		l = "default"
+	}
 	result := TileFetchResult{r.Coord, nil}
-	queryString := fmt.Sprintf("select tile_data from tiles where zoom_level=%d and tile_column=%d and tile_row=%d",
-		zoom, x, y)
+	queryString := `
+		SELECT tile_data 
+		FROM tile_blobs 
+		WHERE checksum=(
+			SELECT checksum 
+			FROM layered_tiles 
+			WHERE zoom_level=? 
+				AND tile_column=? 
+				AND tile_row=?
+				AND layer_id=(SELECT rowid FROM layers WHERE layer_name=?)
+		)`
 	var blob []byte
-	row := m.db.QueryRow(queryString)
+	row := m.db.QueryRow(queryString, zoom, x, y, l)
 	err := row.Scan(&blob)
 	switch {
 	case err == sql.ErrNoRows:

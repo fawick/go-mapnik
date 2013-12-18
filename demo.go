@@ -12,12 +12,18 @@ import (
 
 const NUM_THREADS = 4
 
+// Render a map of euripe
 func SimpleExample() {
 	m := mapnik.NewMap(1600, 1200)
 	defer m.Free()
 	m.Load("sampledata/stylesheet.xml")
 	fmt.Println(m.SRS())
-	m.ZoomToMinMax(0, 35, 16, 70)
+	// perform projection, only neccessary because stylesheet.xml is using
+	// EPSG:3857 rather than WGS84
+	p := m.Projection()
+	ll := p.Forward(mapnik.Coord{0, 35})  // 0 degrees longitude, 35 degrees north
+	ur := p.Forward(mapnik.Coord{16, 70}) // 16 degrees east, 70 degrees north
+	m.ZoomToMinMax(ll.X, ll.Y, ur.X, ur.Y)
 	ioutil.WriteFile("mapnik.png", m.RenderToMemoryPng(), 0644)
 }
 
@@ -45,12 +51,15 @@ func GenerateOSMTiles() {
 }
 
 func TileserverWithCaching() {
-	t := mapnik.NewTileServer("sampledata/stylesheet.xml")
+	cache := "gomapnikcache.sqlite"
+	os.Remove(cache)
+	t := mapnik.NewTileServer(cache)
+	t.AddMapnikLayer("", "sampledata/stylesheet.xml")
 	http.ListenAndServe(":8080", t)
 }
 
 func main() {
-	//SimpleExample()
+	SimpleExample()
 	//GenerateOSMTiles()
 	TileserverWithCaching()
 }

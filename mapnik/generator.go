@@ -37,7 +37,7 @@ func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) 
 
 	for i := 0; i < g.Threads; i++ {
 		go func(id int, ctc <-chan TileCoord, q chan bool) {
-			requests := SetupRenderRoutine(g.MapFile)
+			requests := NewTileRendererChan(g.MapFile)
 			results := make(chan TileFetchResult)
 			for t := range ctc {
 				requests <- TileFetchRequest{t, results}
@@ -59,7 +59,7 @@ func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) 
 		for x := uint64(px0[0] / 256.0); x <= uint64(px1[0]/256.0); x++ {
 			ensureDirExists(fmt.Sprintf("%d/%d", z, x))
 			for y := uint64(px0[1] / 256.0); y <= uint64(px1[1]/256.0); y++ {
-				c <- TileCoord{x, y, z, false}
+				c <- TileCoord{x, y, z, false, ""}
 			}
 		}
 	}
