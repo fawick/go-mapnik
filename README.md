@@ -22,8 +22,7 @@ Installation
 3. `cd mapnik` and run the configuration script `./configure.bash`. 
    That script will setup the correct paths for including Mapnik headers and
    linking against the Mapnik shared library, as well as download the Mapnik C
-   API source 
-4. `go install` the bindings in `./mapnik` or `cd example && go run example.go`
+   API source and `go install` the bindings.
 
 
 
@@ -50,13 +49,13 @@ binaries on your own.
     + `go get -d github.com/fawick/go-mapnik/mapnik`
 3. Run `configure.cmd` in the folder `mapnik` to compile a C DLL
    that can be used by Go/CGO/GCC later (sources will be downloaded
-   automatically)
-4. `go install` the bindings in `./mapnik` or `cd example && go run example.go`
-    (Make sure your %PATH% environment variable contains the paths of both
+   automatically). Also, the script will  `go install` the bindings.
+4. Run `go run demo.go` and open `view_tileserver.html` in a browser.
+   (Make sure your %PATH% environment variable contains the paths of both
     `mapnik.dll` and the newly created `mapnik_c_api.dll`.)
 
 Usage
 -----
 
-See `example/example.go` for a short usage example.
+See `demo.go` for some usage examples.
 

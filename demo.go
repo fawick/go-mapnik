@@ -11,16 +11,14 @@ import (
 	"os"
 )
 
-const NUM_THREADS = 4
-
-// Render a map of euripe
+// Render a simple map of europe to a PNG file
 func SimpleExample() {
 	m := mapnik.NewMap(1600, 1200)
 	defer m.Free()
 	m.Load("sampledata/stylesheet.xml")
 	fmt.Println(m.SRS())
-	// perform projection, only neccessary because stylesheet.xml is using
-	// EPSG:3857 rather than WGS84
+	// Perform a projection that is only neccessary because stylesheet.xml
+	// is using EPSG:3857 rather than WGS84
 	p := m.Projection()
 	ll := p.Forward(mapnik.Coord{0, 35})  // 0 degrees longitude, 35 degrees north
 	ur := p.Forward(mapnik.Coord{16, 70}) // 16 degrees east, 70 degrees north
@@ -33,7 +31,9 @@ func SimpleExample() {
 // http://svn.openstreetmap.org/applications/rendering/mapnik/generate_tiles.py
 func GenerateOSMTiles() {
 	g := maptiles.Generator{}
-	g.Threads = NUM_THREADS
+
+	// Modify this number according to your machine!
+	g.Threads = 4
 
 	home := os.Getenv("HOME")
 	g.MapFile = os.Getenv("MAPNIK_MAP_FILE")
@@ -46,11 +46,13 @@ func GenerateOSMTiles() {
 	}
 
 	g.Run(mapnik.Coord{-180, -90}, mapnik.Coord{180, 90}, 0, 6, "World")
-	g.Run(mapnik.Coord{11.4, 48.07}, mapnik.Coord{11.7, 48.22}, 1, 12, "Muenchen")
-	g.Run(mapnik.Coord{11.3, 48.01}, mapnik.Coord{12.15, 48.44}, 7, 12, "Muenchen+")
-	g.Run(mapnik.Coord{1.0, 10.0}, mapnik.Coord{20.6, 50.0}, 1, 11, "Europe+")
+	g.Run(mapnik.Coord{0, 35.0}, mapnik.Coord{16, 70}, 1, 11, "Europe")
 }
 
+// Serve a single stylesheet via HTTP. Open view_tileserver.html in your browser
+// to see the results.
+// The created tiles are cached in an sqlite database (MBTiles 1.2 conform) so
+// successive access a tile is much faster.
 func TileserverWithCaching() {
 	cache := "gomapnikcache.sqlite"
 	os.Remove(cache)
@@ -59,6 +61,8 @@ func TileserverWithCaching() {
 	http.ListenAndServe(":8080", t)
 }
 
+// Before uncommenting the GenerateOSMTiles call make sure you have
+// the neccessary OSM sources. Consult OSM wiki for details.
 func main() {
 	SimpleExample()
 	//GenerateOSMTiles()
