@@ -1,7 +1,8 @@
-package mapnik
+package maptiles
 
 import (
 	"fmt"
+	"github.com/fawick/go-mapnik/mapnik"
 	"log"
 )
 
@@ -54,8 +55,8 @@ func NewTileRendererChan(stylesheet string) chan<- TileFetchRequest {
 
 // Renders images as Web Mercator tiles
 type TileRenderer struct {
-	m  *Map
-	mp Projection
+	m  *mapnik.Map
+	mp mapnik.Projection
 }
 
 func NewTileRenderer(stylesheet string) *TileRenderer {
@@ -64,7 +65,7 @@ func NewTileRenderer(stylesheet string) *TileRenderer {
 	if err != nil {
 		log.Fatal(err)
 	}
-	t.m = NewMap(256, 256)
+	t.m = mapnik.NewMap(256, 256)
 	t.m.Load(stylesheet)
 	t.mp = t.m.Projection()
 
@@ -91,8 +92,8 @@ func (t *TileRenderer) RenderTileZXY(zoom, x, y uint64) ([]byte, error) {
 	l1 := fromPixelToLL(p1, zoom)
 
 	// Convert to map projection (e.g. mercartor co-ords EPSG:3857)
-	c0 := t.mp.Forward(Coord{l0[0], l0[1]})
-	c1 := t.mp.Forward(Coord{l1[0], l1[1]})
+	c0 := t.mp.Forward(mapnik.Coord{l0[0], l0[1]})
+	c1 := t.mp.Forward(mapnik.Coord{l1[0], l1[1]})
 
 	// Bounding box for the Tile
 	t.m.Resize(256, 256)

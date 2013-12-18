@@ -1,4 +1,4 @@
-package mapnik
+package maptiles
 
 import (
 	"log"

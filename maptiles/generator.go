@@ -1,17 +1,12 @@
-package mapnik
+package maptiles
 
 import (
 	"fmt"
+	"github.com/fawick/go-mapnik/mapnik"
 	"io/ioutil"
 	"log"
 	"os"
 )
-
-type GeneratorJob struct {
-	LowLeft, UpRight Coord
-	MinZoom, MaxZoom uint64
-	Name             string
-}
 
 type Generator struct {
 	MapFile string
@@ -27,7 +22,7 @@ func ensureDirExists(path string) {
 
 // Generates tile files as a <zoom>/<x>/<y>.png file hierarchy in the current
 // work directory.
-func (g *Generator) Run(lowLeft, upRight Coord, minZ, maxZ uint64, name string) {
+func (g *Generator) Run(lowLeft, upRight mapnik.Coord, minZ, maxZ uint64, name string) {
 	c := make(chan TileCoord)
 	q := make(chan bool)
 

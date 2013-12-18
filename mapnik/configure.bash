@@ -16,3 +16,4 @@ const (
 
 EOF
 
+go install

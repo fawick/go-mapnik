@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"github.com/fawick/go-mapnik/mapnik"
+	"github.com/fawick/go-mapnik/maptiles"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -31,7 +32,7 @@ func SimpleExample() {
 // The original script is found here:
 // http://svn.openstreetmap.org/applications/rendering/mapnik/generate_tiles.py
 func GenerateOSMTiles() {
-	g := mapnik.Generator{}
+	g := maptiles.Generator{}
 	g.Threads = NUM_THREADS
 
 	home := os.Getenv("HOME")
@@ -53,7 +54,7 @@ func GenerateOSMTiles() {
 func TileserverWithCaching() {
 	cache := "gomapnikcache.sqlite"
 	os.Remove(cache)
-	t := mapnik.NewTileServer(cache)
+	t := maptiles.NewTileServer(cache)
 	t.AddMapnikLayer("", "sampledata/stylesheet.xml")
 	http.ListenAndServe(":8080", t)
 }

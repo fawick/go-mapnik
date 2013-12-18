@@ -53,6 +53,8 @@ link /LIBPATH:%MAPNIK_LDFLAGS% %MAPNIK_LIBS%  mapnik_c_api.obj /DLL /OUT:mapnik_
 del mapnik_c_api.obj  mapnik_c_api.cpp  mapnik_c_api.lib  mapnik_c_api.exp
 move /y mapnik_c_api.dll c:\mapnik-v2.2.0\lib
 
+go install 
+
 goto :eof
 
 :constructDefines
