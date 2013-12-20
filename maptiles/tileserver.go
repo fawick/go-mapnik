@@ -3,6 +3,7 @@ package maptiles
 import (
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 )
 
@@ -28,19 +29,20 @@ func (t *TileServer) AddMapnikLayer(layerName string, stylesheet string) {
 	t.lmp.AddRenderer(layerName, stylesheet)
 }
 
+var pathRegex = regexp.MustCompile(`/([A-Za-z0-9]+)/([0-9]+)/([0-9]+)/([0-9]+)\.png`)
+
 func (t *TileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), 500)
+	path := pathRegex.FindStringSubmatch(r.URL.Path)
+
+	if path == nil {
+		http.NotFound(w, r)
 		return
 	}
 
-	// TODO use uri scheme <z>/<x>/<y>.png instead of form values
-	x, _ := strconv.ParseUint(r.FormValue("x"), 10, 64)
-	y, _ := strconv.ParseUint(r.FormValue("y"), 10, 64)
-	z, _ := strconv.ParseUint(r.FormValue("z"), 10, 64)
-	l := r.FormValue("l")
+	l := path[1]
+	z, _ := strconv.ParseUint(path[2], 10, 64)
+	x, _ := strconv.ParseUint(path[3], 10, 64)
+	y, _ := strconv.ParseUint(path[4], 10, 64)
 	ch := make(chan TileFetchResult)
 
 	request := TileFetchRequest{TileCoord{x, y, z, t.TmsSchema, l}, ch}
@@ -65,7 +67,7 @@ func (t *TileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	_, err = w.Write(result.BlobPNG)
+	_, err := w.Write(result.BlobPNG)
 	if err != nil {
 		log.Println(err)
 	}

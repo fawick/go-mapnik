@@ -15,7 +15,7 @@
 
 var map = L.map('map', {
     layers: [
-		L.tileLayer('http://localhost:8080?z={z}&x={x}&y={y}', {
+		L.tileLayer('http://localhost:8080/default/{z}/{x}/{y}.png', {
 			maxZoom: 20,
 			minZoom: 4,
 		}),

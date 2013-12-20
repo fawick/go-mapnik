@@ -57,7 +57,7 @@ func TileserverWithCaching() {
 	cache := "gomapnikcache.sqlite"
 	os.Remove(cache)
 	t := maptiles.NewTileServer(cache)
-	t.AddMapnikLayer("", "sampledata/stylesheet.xml")
+	t.AddMapnikLayer("default", "sampledata/stylesheet.xml")
 	http.ListenAndServe(":8080", t)
 }
 
