@@ -1,5 +1,6 @@
 package mapnik
 
+// #include <stdlib.h>
 // #include "mapnik_c_api.h"
 import "C"
 
@@ -15,11 +16,15 @@ func init() {
 }
 
 func RegisterDatasources(path string) {
-	C.mapnik_register_datasources(C.CString(path))
+	cs := C.CString(path)
+	defer C.free(unsafe.Pointer(cs))
+	C.mapnik_register_datasources(cs)
 }
 
 func RegisterFonts(path string) {
-	C.mapnik_register_fonts(C.CString(path))
+	cs := C.CString(path)
+	defer C.free(unsafe.Pointer(cs))
+	C.mapnik_register_fonts(cs)
 }
 
 // Point in 2D space
@@ -57,7 +62,9 @@ func (m *Map) lastError() error {
 }
 
 func (m *Map) Load(stylesheet string) error {
-	if C.mapnik_map_load(m.m, C.CString(stylesheet)) != 0 {
+	cs := C.CString(stylesheet)
+	defer C.free(unsafe.Pointer(cs))
+	if C.mapnik_map_load(m.m, cs) != 0 {
 		return m.lastError()
 	}
 	return nil
@@ -77,7 +84,9 @@ func (m *Map) SRS() string {
 }
 
 func (m *Map) SetSRS(srs string) {
-	C.mapnik_map_set_srs(m.m, C.CString(srs))
+	cs := C.CString(srs)
+	defer C.free(unsafe.Pointer(cs))
+	C.mapnik_map_set_srs(m.m, cs)
 }
 
 func (m *Map) ZoomAll() error {
@@ -94,7 +103,9 @@ func (m *Map) ZoomToMinMax(minx, miny, maxx, maxy float64) {
 }
 
 func (m *Map) RenderToFile(path string) error {
-	if C.mapnik_map_render_to_file(m.m, C.CString(path)) != 0 {
+	cs := C.CString(path)
+	defer C.free(unsafe.Pointer(cs))
+	if C.mapnik_map_render_to_file(m.m, cs) != 0 {
 		return m.lastError()
 	}
 	return nil
