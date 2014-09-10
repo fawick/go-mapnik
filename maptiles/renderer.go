@@ -2,8 +2,9 @@ package maptiles
 
 import (
 	"fmt"
-	"github.com/fawick/go-mapnik/mapnik"
 	"log"
+
+	"github.com/fawick/go-mapnik/mapnik"
 )
 
 type TileCoord struct {
@@ -100,6 +101,6 @@ func (t *TileRenderer) RenderTileZXY(zoom, x, y uint64) ([]byte, error) {
 	t.m.ZoomToMinMax(c0.X, c0.Y, c1.X, c1.Y)
 	t.m.SetBufferSize(128)
 
-	blob := t.m.RenderToMemoryPng()
-	return blob, nil
+	blob, err := t.m.RenderToMemoryPng()
+	return blob, err
 }

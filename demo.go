@@ -4,11 +4,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/fawick/go-mapnik/mapnik"
-	"github.com/fawick/go-mapnik/maptiles"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/fawick/go-mapnik/mapnik"
+	"github.com/fawick/go-mapnik/maptiles"
 )
 
 // Render a simple map of europe to a PNG file
@@ -23,7 +24,12 @@ func SimpleExample() {
 	ll := p.Forward(mapnik.Coord{0, 35})  // 0 degrees longitude, 35 degrees north
 	ur := p.Forward(mapnik.Coord{16, 70}) // 16 degrees east, 70 degrees north
 	m.ZoomToMinMax(ll.X, ll.Y, ur.X, ur.Y)
-	ioutil.WriteFile("mapnik.png", m.RenderToMemoryPng(), 0644)
+	blob, err := m.RenderToMemoryPng()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	ioutil.WriteFile("mapnik.png", blob, 0644)
 }
 
 // This function resembles the OSM python script 'generate_tiles.py'
