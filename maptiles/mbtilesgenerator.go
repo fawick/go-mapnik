@@ -4,8 +4,9 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
+
+	_ "github.com/mattn/go-sqlite3"
 	//"net/http"
 	//"strconv"
 )

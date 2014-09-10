@@ -18,13 +18,17 @@ func init() {
 func RegisterDatasources(path string) {
 	cs := C.CString(path)
 	defer C.free(unsafe.Pointer(cs))
-	C.mapnik_register_datasources(cs)
+	err := C.CString(path)
+	defer C.free(unsafe.Pointer(err))
+	C.mapnik_register_datasources(cs, &err)
 }
 
 func RegisterFonts(path string) {
 	cs := C.CString(path)
 	defer C.free(unsafe.Pointer(cs))
-	C.mapnik_register_fonts(cs)
+	err := C.CString(path)
+	defer C.free(unsafe.Pointer(err))
+	C.mapnik_register_fonts(cs, &err)
 }
 
 // Point in 2D space
@@ -34,7 +38,7 @@ type Coord struct {
 
 // Projection from one reference system to the other
 type Projection struct {
-	p *C.struct_mapnik_projection_t
+	p *C.struct__mapnik_projection_t
 }
 
 func (p *Projection) Free() {
@@ -50,7 +54,7 @@ func (p Projection) Forward(coord Coord) Coord {
 
 // Map base type
 type Map struct {
-	m *C.struct_mapnik_map_t
+	m *C.struct__mapnik_map_t
 }
 
 func NewMap(width, height uint32) *Map {
