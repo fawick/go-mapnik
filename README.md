@@ -1,8 +1,10 @@
 go-mapnik
 =========
 
-Go bindings for mapnik (http://www.mapnik.org or
+Go bindings for mapnik 2.2 (http://www.mapnik.org or
 http://github.com/mapnik/mapnik)
+
+Support for mapnik 3.0.0 is coming soon (tm).
 
 These bindings rely on http://github.com/springmeyer/mapnik-c-api. 
 
@@ -28,9 +30,9 @@ Installation
 
 ### Windows
 
-On Windows, go-mapnik is restricted to GOARCH=386 for the moment, as the SDK is
-build with MSVC 32-bit and the C api must be build with a compatible
-compiler as a DLL before the Go bindings can be linked against it. This way
+On Windows, go-mapnik is restricted to GOARCH=386 and Mapnik 2.2 for the moment, 
+as the precompiled 2.2 SDK is build with MSVC 32-bit and the C api must be build with a 
+compatible compiler as a DLL before the Go bindings can be linked against it. 
 
 You also need to have the MSVC 10 compiler installed on your system.
 
@@ -40,7 +42,7 @@ happen to have the `windows/amd64` toolchain, either download Go binaries for
 binaries on your own.
 
 
-1. Install Mapnik Windows 32bit SDK from http://www.mapnik.org/download
+1. Install Mapnik 2.2 Windows 32bit SDK from http://mapnik.org/pages/downloads.html
 2. Download the sources, either by 
     + `git clone` the repository to $GOPATH/src/fawick/go-mapnik 
 	
