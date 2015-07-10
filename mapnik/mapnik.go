@@ -65,10 +65,22 @@ func (m *Map) lastError() error {
 	return errors.New("mapnik: " + C.GoString(C.mapnik_map_last_error(m.m)))
 }
 
-func (m *Map) Load(stylesheet string) error {
-	cs := C.CString(stylesheet)
+// Load initializes the map by loading its stylesheet from stylesheetFile
+func (m *Map) Load(stylesheetFile string) error {
+	cs := C.CString(stylesheetFile)
 	defer C.free(unsafe.Pointer(cs))
 	if C.mapnik_map_load(m.m, cs) != 0 {
+		return m.lastError()
+	}
+	return nil
+}
+
+// LoadString initializes the map not from a file but from a stylesheet
+// provided as a string.
+func (m *Map) LoadString(stylesheet string) error {
+	cs := C.CString(stylesheet)
+	defer C.free(unsafe.Pointer(cs))
+	if C.mapnik_map_load_string(m.m, cs) != 0 {
 		return m.lastError()
 	}
 	return nil
