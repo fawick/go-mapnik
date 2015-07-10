@@ -15,6 +15,10 @@ func init() {
 	RegisterFonts(fontPath)
 }
 
+func Version() string {
+	return "Mapnik " + C.GoString(C.mapnik_version_string())
+}
+
 func RegisterDatasources(path string) {
 	cs := C.CString(path)
 	defer C.free(unsafe.Pointer(cs))

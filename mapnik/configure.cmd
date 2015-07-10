@@ -18,8 +18,8 @@ echo.
 echo.Downloading C API from github
 echo.
 
-if not exist mapnik_c_api.cpp curl -LO https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.cpp
-if not exist mapnik_c_api.h curl -LO https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.h
+if not exist mapnik_c_api.cpp curl -LO https://raw.github.com/fawick/mapnik-c-api/master/mapnik_c_api.cpp
+if not exist mapnik_c_api.h curl -LO https://raw.github.com/fawick/mapnik-c-api/master/mapnik_c_api.h
 
 If DEFINED ProgramFiles(x86) Set BUILDTOOLS32BIT=%ProgramFiles(x86)%
 If NOT DEFINED ProgramFiles(x86) Set BUILDTOOLS32BIT=%ProgramFiles%
