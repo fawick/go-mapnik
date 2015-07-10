@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -f mapnik_c_api.cpp ] || curl -Lo mapnik_c_api.cpp https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.c
+[ -f mapnik_c_api.cpp ] || curl -LO https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.cpp
 [ -f mapnik_c_api.h ] || curl -LO https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.h
 
 cat > gen_import.go <<EOF

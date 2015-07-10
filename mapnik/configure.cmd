@@ -2,7 +2,7 @@ cls
 
 setlocal EnableDelayedExpansion
 
-if not exist mapnik_c_api.cpp curl -o mapnik_c_api.cpp https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.c
+if not exist mapnik_c_api.cpp curl -O https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.cpp
 if not exist mapnik_c_api.h curl -O https://raw.github.com/springmeyer/mapnik-c-api/master/mapnik_c_api.h
 
 If DEFINED ProgramFiles(x86) Set BUILDTOOLS32BIT=%ProgramFiles(x86)%
