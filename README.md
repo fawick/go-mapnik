@@ -61,3 +61,13 @@ Usage
 
 See `demo.go` for some usage examples.
 
+
+Related Work 
+------------
+
+There is another Go package that offers access to mapnik at
+https://github.com/omniscale/go-mapnik by Oliver Tonnhofer of Omniscale.
+According to them, it is inspired by/based on this package. Instead of fetching
+the latest mapnik-c-api they vendor their own c-code so, their package supports
+some more features of libmapnik directly, such as version information access
+and logging. It has support for Mapnik 3.0 built within. 
