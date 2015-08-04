@@ -1,10 +1,8 @@
 go-mapnik
 =========
 
-Go bindings for mapnik 2.2 (http://www.mapnik.org or
+Go bindings for mapnik 2.2 and Mapnik 3.0 (http://www.mapnik.org or
 http://github.com/mapnik/mapnik)
-
-Support for mapnik 3.0.0 is coming soon (tm).
 
 These bindings rely on http://github.com/springmeyer/mapnik-c-api. 
 
