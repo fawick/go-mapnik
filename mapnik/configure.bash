@@ -16,4 +16,3 @@ const (
 
 EOF
 
-go install -x
