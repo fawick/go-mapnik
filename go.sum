@@ -1,0 +1,4 @@
+github.com/fawick/go-mapnik v0.0.0-20150804175644-addbd46720f6 h1:v4slwL1xR0J85BHc1XaZwTIyvP4kNYGxNx0/cUcARrQ=
+github.com/fawick/go-mapnik v0.0.0-20150804175644-addbd46720f6/go.mod h1:jYrNBtOVujI/zzBIYHcRDYLlFW3yaXYIN7jO/3iHifU=
+github.com/mattn/go-sqlite3 v1.14.7 h1:fxWBnXkxfM6sRiuH3bqJ4CfzZojMOLVc0UTsTglEghA=
+github.com/mattn/go-sqlite3 v1.14.7/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
